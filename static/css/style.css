@@ -124,54 +124,61 @@ a { color: inherit; text-decoration: none; }
 /* ------------------------------------------------------------------ */
 
 .hero {
-    padding: 5rem 2rem 4rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
+    padding: 6rem 2rem 4rem;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
+    gap: 4rem;
     max-width: var(--max-width);
     margin: 0 auto;
 }
 
 .hero-badge {
-    display: inline-block;
-    background: var(--accent-light);
-    color: var(--accent);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 0.35rem 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #e8f7ef;
+    color: #2d8a5a;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.4rem 1rem;
     border-radius: 999px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.badge-dot {
+    width: 6px;
+    height: 6px;
+    background: #2d8a5a;
+    border-radius: 50%;
 }
 
 .hero-title {
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
     line-height: 1.1;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     color: var(--ink);
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
 }
 
-.hero-title em {
-    font-style: italic;
-    color: var(--accent);
+.text-accent {
+    color: #2d8a5a;
 }
 
 .hero-subtitle {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     color: var(--ink-muted);
-    line-height: 1.7;
-    max-width: 460px;
+    line-height: 1.6;
+    max-width: 600px;
     margin-bottom: 2rem;
 }
 
 .hero-actions {
     display: flex;
     gap: 1rem;
-    align-items: center;
+    justify-content: center;
 }
 
 /* ------------------------------------------------------------------ */
@@ -181,6 +188,7 @@ a { color: inherit; text-decoration: none; }
 .hero-visual {
     display: flex;
     justify-content: center;
+    width: 100%;
 }
 
 .mock-card {
@@ -189,50 +197,70 @@ a { color: inherit; text-decoration: none; }
     border-radius: var(--radius-lg);
     padding: 2rem;
     width: 100%;
-    max-width: 380px;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+    max-width: 800px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.04);
 }
 
-.mock-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 1.75rem;
-    padding-bottom: 1.25rem;
+.mock-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2.5rem;
     border-bottom: 1px solid var(--border-soft);
 }
 
-.mock-label {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--ink-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
-.mock-total {
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
     font-family: var(--font-display);
     font-size: 1.75rem;
     color: var(--ink);
+    margin-bottom: 0.25rem;
 }
 
-.mock-bars { display: flex; flex-direction: column; gap: 1rem; }
+.stat-trend {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+}
+
+.stat-trend.positive {
+    color: #2d8a5a;
+    font-weight: 500;
+}
+
+.mock-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
 
 .mock-bar-row {
     display: grid;
-    grid-template-columns: 80px 1fr 60px;
+    grid-template-columns: 100px 1fr;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1.5rem;
 }
 
 .mock-cat {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--ink-soft);
+    text-align: left;
 }
 
 .mock-bar-track {
-    height: 6px;
+    height: 10px;
     background: var(--border-soft);
     border-radius: 999px;
     overflow: hidden;
@@ -240,14 +268,13 @@ a { color: inherit; text-decoration: none; }
 
 .mock-bar {
     height: 100%;
-    background: var(--accent);
     border-radius: 999px;
     transition: width 0.6s ease;
 }
 
-.mock-bar-2 { background: var(--accent-2); }
-.mock-bar-3 { background: #5b7fa6; }
-.mock-bar-4 { background: #8b5e83; }
+.bar-orange { background: #f39c12; }
+.bar-blue { background: #3498db; }
+.bar-purple { background: #9b59b6; }
 
 .mock-amt {
     font-size: 0.8rem;
