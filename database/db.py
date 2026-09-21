@@ -15,6 +15,11 @@ def get_user_by_email(email):
     with get_db() as conn:
         return conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
 
+def get_user_by_id(user_id):
+    """Retrieves a user by their unique ID."""
+    with get_db() as conn:
+        return conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+
 def init_db():
     """Creates all tables using CREATE TABLE IF NOT EXISTS."""
     with get_db() as conn:
