@@ -1,6 +1,6 @@
 from flask import Flask, render_template, session, redirect, url_for, request, flash
 from werkzeug.security import check_password_hash
-from database.db import init_db, seed_db, get_user_by_email
+from database.db import init_db, seed_db, get_user_by_email, get_user_by_id
 from functools import wraps
 
 app = Flask(__name__)
@@ -24,8 +24,6 @@ def login_required(f):
 
 @app.route("/")
 def landing():
-    if "user_id" in session:
-        return redirect(url_for("profile"))
     return render_template("landing.html")
 
 
@@ -81,7 +79,39 @@ def logout():
 @app.route("/profile")
 @login_required
 def profile():
-    return "Profile page — coming in Step 4"
+    user_id = session.get("user_id")
+    user = get_user_by_id(user_id)
+
+    if not user:
+        flash("User account not found.", "error")
+        return redirect(url_for("login"))
+
+    # Hardcoded data for Step 4 (UI validation)
+    stats = {
+        "total_spent": "₹12,450.00",
+        "transaction_count": 42,
+        "top_category": "Dining"
+    }
+
+    transactions = [
+        {"date": "2026-09-20", "desc": "Starbucks Coffee", "category": "Dining", "amount": "₹350.00"},
+        {"date": "2026-09-19", "desc": "Uber Ride", "category": "Transport", "amount": "₹120.00"},
+        {"date": "2026-09-18", "desc": "Amazon - Books", "category": "Shopping", "amount": "₹1,200.00"},
+        {"date": "2026-09-15", "desc": "Local Grocery", "category": "Food", "amount": "₹2,400.00"},
+    ]
+
+    categories = [
+        {"name": "Dining", "total": "₹4,200", "percentage": 34, "color": "bar-orange"},
+        {"name": "Transport", "total": "₹2,100", "percentage": 17, "color": "bar-blue"},
+        {"name": "Shopping", "total": "₹6,150", "percentage": 49, "color": "bar-purple"},
+    ]
+
+    return render_template("profile.html",
+                           user=user,
+                           stats=stats,
+                           transactions=transactions,
+                           categories=categories)
+
 
 
 
