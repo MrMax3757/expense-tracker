@@ -10,6 +10,11 @@ def get_db():
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
+def get_user_by_email(email):
+    """Retrieves a user by their email address."""
+    with get_db() as conn:
+        return conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+
 def init_db():
     """Creates all tables using CREATE TABLE IF NOT EXISTS."""
     with get_db() as conn:
