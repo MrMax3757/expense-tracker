@@ -20,6 +20,58 @@ def get_user_by_id(user_id):
     with get_db() as conn:
         return conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
+
+def get_category_breakdown(user_id):
+    """Calculates total spend and percentage for each category."""
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category",
+            (user_id,)
+        ).fetchall()
+
+        total_spend = sum(row["total"] for row in rows)
+
+        breakdown = []
+        for row in rows:
+            percentage = (row["total"] / total_spend * 100) if total_spend > 0 else 0
+            breakdown.append({
+                "name": row["category"],
+                "total": row["total"],
+                "percentage": round(percentage)
+            })
+
+        return breakdown
+
+
+def get_user_expenses(user_id):
+    """Retrieves all expenses for a specific user, ordered by date descending."""
+    with get_db() as conn:
+        return conn.execute(
+            "SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC",
+            (user_id,)
+        ).fetchall()
+
+def get_user_stats(user_id):
+    """Returns summary statistics for a user's expenses."""
+    with get_db() as conn:
+        # Query 1: Total spent and transaction count
+        stats_row = conn.execute(
+            "SELECT SUM(amount) as total, COUNT(*) as count FROM expenses WHERE user_id = ?",
+            (user_id,)
+        ).fetchone()
+
+        # Query 2: Top category by amount
+        category_row = conn.execute(
+            "SELECT category FROM expenses WHERE user_id = ? GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1",
+            (user_id,)
+        ).fetchone()
+
+        return {
+            "total_spent": stats_row["total"] if stats_row["total"] is not None else 0,
+            "transaction_count": stats_row["count"],
+            "top_category": category_row["category"] if category_row else "N/A"
+        }
+
 def init_db():
     """Creates all tables using CREATE TABLE IF NOT EXISTS."""
     with get_db() as conn:
