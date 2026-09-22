@@ -1,6 +1,6 @@
 from flask import Flask, render_template, session, redirect, url_for, request, flash
 from werkzeug.security import check_password_hash
-from database.db import init_db, seed_db, get_user_by_email, get_user_by_id
+from database.db import init_db, seed_db, get_user_by_email, get_user_by_id, get_user_expenses, get_user_stats, get_category_breakdown
 from functools import wraps
 
 app = Flask(__name__)
@@ -86,24 +86,40 @@ def profile():
         flash("User account not found.", "error")
         return redirect(url_for("login"))
 
-    # Hardcoded data for Step 4 (UI validation)
+    # Summary statistics
+    raw_stats = get_user_stats(user_id)
     stats = {
-        "total_spent": "₹12,450.00",
-        "transaction_count": 42,
-        "top_category": "Dining"
+        "total_spent": f"₹{raw_stats['total_spent']:,.2f}",
+        "transaction_count": raw_stats['transaction_count'],
+        "top_category": raw_stats['top_category']
     }
 
+    raw_expenses = get_user_expenses(user_id)
     transactions = [
-        {"date": "2026-09-20", "desc": "Starbucks Coffee", "category": "Dining", "amount": "₹350.00"},
-        {"date": "2026-09-19", "desc": "Uber Ride", "category": "Transport", "amount": "₹120.00"},
-        {"date": "2026-09-18", "desc": "Amazon - Books", "category": "Shopping", "amount": "₹1,200.00"},
-        {"date": "2026-09-15", "desc": "Local Grocery", "category": "Food", "amount": "₹2,400.00"},
+        {
+            "date": tx["date"],
+            "desc": tx["description"],
+            "category": tx["category"],
+            "amount": f"₹{tx['amount']:,.2f}"
+        }
+        for tx in raw_expenses
     ]
 
+    raw_cats = get_category_breakdown(user_id)
+    color_map = {
+        "Food": "bar-orange",
+        "Transport": "bar-blue",
+        "Shopping": "bar-purple",
+        "Bills": "bar-green"
+    }
     categories = [
-        {"name": "Dining", "total": "₹4,200", "percentage": 34, "color": "bar-orange"},
-        {"name": "Transport", "total": "₹2,100", "percentage": 17, "color": "bar-blue"},
-        {"name": "Shopping", "total": "₹6,150", "percentage": 49, "color": "bar-purple"},
+        {
+            "name": cat["name"],
+            "total": f"₹{cat['total']:,.0f}",
+            "percentage": cat["percentage"],
+            "color": color_map.get(cat["name"], "bar-gray")
+        }
+        for cat in raw_cats
     ]
 
     return render_template("profile.html",
