@@ -23,13 +23,31 @@
             <div class="user-details">
                 <div class="user-title-row">
                     <h2>{{ user['name'] }}</h2>
-                    <span class="member-badge">Member since Jan 2024</span>
+                    <span class="member-badge">Member since {{ member_since }}</span>
                 </div>
                 <p class="user-email">
                     <i data-lucide="mail" class="inline-icon"></i> {{ user['email'] }}
                 </p>
             </div>
         </div>
+    </section>
+
+    <!-- Filter Bar -->
+    <section class="filter-bar">
+        <div class="quick-filters">
+            <a href="{{ url_for('profile') }}" class="filter-btn {{ 'active' if current_filter == 'all' }}" title="All Time">All Time</a>
+            <a href="{{ url_for('profile', range='this_month') }}" class="filter-btn {{ 'active' if current_filter == 'this_month' }}" title="This Month">This Month</a>
+            <a href="{{ url_for('profile', range='last_3_months') }}" class="filter-btn {{ 'active' if current_filter == 'last_3_months' }}" title="Last 3 Months">Last 3 Months</a>
+            <a href="{{ url_for('profile', range='last_6_months') }}" class="filter-btn {{ 'active' if current_filter == 'last_6_months' }}" title="Last 6 Months">Last 6 Months</a>
+        </div>
+        <form method="GET" action="{{ url_for('profile') }}" class="custom-filter">
+            <div class="date-inputs">
+                <input type="date" name="start_date" value="{{ start_date }}" title="Start Date">
+                <span class="date-separator">to</span>
+                <input type="date" name="end_date" value="{{ end_date }}" title="End Date">
+            </div>
+            <button type="submit" class="btn-apply">Apply</button>
+        </form>
     </section>
 
     <!-- Section 2: Summary Stats -->
