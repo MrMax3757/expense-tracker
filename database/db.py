@@ -1,11 +1,30 @@
 import sqlite3
 from werkzeug.security import generate_password_hash
+from flask import current_app
 
-DATABASE = "spendly.db"
+def calculate_date_range(range_val):
+    """Helper to calculate start and end dates based on a range preset."""
+    from datetime import date
+    from dateutil.relativedelta import relativedelta
+
+    today = date.today()
+    if range_val == "this_month":
+        return today.replace(day=1).strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d")
+    elif range_val == "last_3_months":
+        return (today - relativedelta(months=3)).strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d")
+    elif range_val == "last_6_months":
+        return (today - relativedelta(months=6)).strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d")
+    return None, None
 
 def get_db():
     """Returns a SQLite connection with row_factory and foreign keys enabled."""
-    conn = sqlite3.connect(DATABASE)
+    # Use DATABASE from Flask config if available, otherwise fallback to default
+    try:
+        db_path = current_app.config.get("DATABASE", "spendly.db")
+    except RuntimeError:
+        db_path = "spendly.db"
+
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
@@ -21,13 +40,21 @@ def get_user_by_id(user_id):
         return conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
 
-def get_category_breakdown(user_id):
-    """Calculates total spend and percentage for each category."""
+def get_category_breakdown(user_id, start_date=None, end_date=None):
+    """Calculates total spend and percentage for each category, with optional date filtering."""
     with get_db() as conn:
-        rows = conn.execute(
-            "SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category",
-            (user_id,)
-        ).fetchall()
+        query = "SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ?"
+        params = [user_id]
+
+        if start_date:
+            query += " AND date >= ?"
+            params.append(start_date)
+        if end_date:
+            query += " AND date <= ?"
+            params.append(end_date)
+
+        query += " GROUP BY category"
+        rows = conn.execute(query, params).fetchall()
 
         total_spend = sum(row["total"] for row in rows)
 
@@ -43,27 +70,45 @@ def get_category_breakdown(user_id):
         return breakdown
 
 
-def get_user_expenses(user_id):
-    """Retrieves all expenses for a specific user, ordered by date descending."""
+def get_user_expenses(user_id, start_date=None, end_date=None):
+    """Retrieves expenses for a user, ordered by date descending, with optional date filtering."""
     with get_db() as conn:
-        return conn.execute(
-            "SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC",
-            (user_id,)
-        ).fetchall()
+        query = "SELECT date, description, category, amount FROM expenses WHERE user_id = ?"
+        params = [user_id]
 
-def get_user_stats(user_id):
-    """Returns summary statistics for a user's expenses."""
+        if start_date:
+            query += " AND date >= ?"
+            params.append(start_date)
+        if end_date:
+            query += " AND date <= ?"
+            params.append(end_date)
+
+        query += " ORDER BY date DESC"
+        return conn.execute(query, params).fetchall()
+
+def get_user_stats(user_id, start_date=None, end_date=None):
+    """Returns summary statistics for a user's expenses, with optional date filtering."""
     with get_db() as conn:
+        # Base conditions for both queries
+        query_base = "FROM expenses WHERE user_id = ?"
+        params = [user_id]
+        if start_date:
+            query_base += " AND date >= ?"
+            params.append(start_date)
+        if end_date:
+            query_base += " AND date <= ?"
+            params.append(end_date)
+
         # Query 1: Total spent and transaction count
         stats_row = conn.execute(
-            "SELECT SUM(amount) as total, COUNT(*) as count FROM expenses WHERE user_id = ?",
-            (user_id,)
+            f"SELECT SUM(amount) as total, COUNT(*) as count {query_base}",
+            params
         ).fetchone()
 
         # Query 2: Top category by amount
         category_row = conn.execute(
-            "SELECT category FROM expenses WHERE user_id = ? GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1",
-            (user_id,)
+            f"SELECT category {query_base} GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1",
+            params
         ).fetchone()
 
         return {
